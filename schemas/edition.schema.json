@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Edition",
+  "type": "object",
+  "required": [
+    "isbn13",
+    "language",
+    "createdAt",
+    "updatedAt"
+  ],
+  "properties": {
+    "isbn13": {
+      "type": "string",
+      "pattern": "^[0-9]{13}$"
+    },
+    "language": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "categories": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "publisher": {
+      "type": "string"
+    },
+    "editionStatement": {
+      "type": "string"
+    },
+    "publishedDate": {
+      "type": "string"
+    },
+    "pageCount": {
+      "type": "integer"
+    },
+    "format": {
+      "type": "string"
+    },
+    "coverRemoteUrl": {
+      "type": "string"
+    },
+    "coverSource": {
+      "type": "string"
+    },
+    "createdAt": {
+      "type": "string"
+    },
+    "updatedAt": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": true
+}
