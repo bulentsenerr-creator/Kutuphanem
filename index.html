@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Kütüphanem" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="theme-color" content="#2563eb" />
+
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+
+  <title>Kütüphanem Pro Max v2026.3.1</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/styles.css" />
+</head>
+<body>
+<header class="app-header">
+ <h1>📚 KÜTÜPHANEM PRO MAX</h1>
+ <div class="header-icons">
+ <span onclick="exportData()" title="Dışa Aktar / Yedek Al">📤</span>
+ <label title="İçe Aktar / Geri Yükle">📥<input type="file" hidden onchange="importData(event)" /></label>
+ <!-- Barkod tarama kısayolu -->
+ <span onclick="openScanner()" title="Barkod Tara">📷</span>
+ </div>
+</header>
+<div class="stats-bar">
+ <span id="statCount">0 Kitap</span>
+ <span id="statValue">0.00 TL</span>
+</div>
+<div class="container">
+ <div class="card" id="formCard">
+ <div style="display:flex; gap:10px; margin-bottom:12px; align-items:center;">
+ <input type="text" id="isbnSearch" inputmode="numeric" placeholder="ISBN No ile sorgula..." style="margin-bottom:0" />
+ <button onclick="fetchBook()" class="btn-primary" style="padding:12px 20px; width:auto">Getir</button>
+ <button onclick="openScanner()" title="Barkod Tara" style="padding:12px 14px; border-radius:14px; background:#111827; color:#e5e7eb;">📷</button>
+ </div>
+ <div id="extraFields" class="hidden">
+ <input type="text" id="title" placeholder="Kitap Adı *" />
+ <input type="text" id="author" placeholder="Yazar" />
+ <input type="text" id="isbnFinal" placeholder="ISBN Numarası" />
+ <div class="grid-2">
+ <input type="text" id="publisher" placeholder="Yayıncı" />
+ <input type="text" id="shelf" placeholder="Raf Konumu" />
+ </div>
+ <div class="grid-2">
+ <input type="number" id="pubYear" placeholder="Yayın Yılı" />
+ <input type="number" id="pageCount" placeholder="Sayfa" />
+ </div>
+ <!-- Dil / Kategoriler / Notlar -->
+ <div class="grid-2">
+ <input type="text" id="language" placeholder="Dil (örn: Türkçe / EN / TR)" />
+ <input type="text" id="categories" placeholder="Kategoriler (virgülle: roman, tarih...)" />
+ </div>
+ <textarea id="notes" placeholder="Notlar" rows="2"></textarea>
+ <!-- Okuma Durumu -->
+ <select id="status">
+ <option value="Okunacak">📌 Okunacak</option>
+ <option value="Okunuyor">📖 Okunuyor</option>
+ <option value="Okundu">✅ Okundu</option>
+ </select>
+ <select id="format">
+ <option value="Ciltsiz">Ciltsiz</option>
+ <option value="Ciltli">Ciltli</option>
+ <option value="Deri Ciltli">Deri Ciltli</option>
+ <option value="Defter">Defter</option>
+ <option value="Kutulu Set">Kutulu Set</option>
+ <option value="Geleneksel olmayan">Geleneksel olmayan</option>
+ <option value="CD">CD</option>
+ <option value="DVD">DVD</option>
+ <option value="Ekitap">Ekitap</option>
+ <option value="Diğer">Diğer</option>
+ </select>
+ 
+ <input type="text" id="purchasePlace" placeholder="Satın Alınan Yer (örn: D&R, Amazon, Sahaf...)" />
+<div class="grid-2">
+ <input type="date" id="pDate" />
+ <input type="number" id="price" step="0.01" placeholder="Fiyat" />
+ </div>
+ <textarea id="desc" placeholder="Açıklama" rows="3"></textarea>
+ <input type="file" id="manualCover" accept="image/*" style="font-size:12px;" />
+ <div class="tiny-note">📌 Manuel kapaklar otomatik IndexedDB’ye kaydedilir (localStorage taşması önlenir).</div>
+ <input type="hidden" id="coverImg" />
+ <button onclick="saveBook()" class="btn-primary" id="saveBtn">Kaydet</button>
+ <button onclick="cancelEdit()" style="width:100%; background:none; margin-top:10px; color: var(--secondary);">Vazgeç</button>
+ </div>
+ <button onclick="toggleForm()" class="btn-primary" id="addBtn">Hızlı Kitap Ekle</button>
+ </div>
+ <div class="card" style="padding:12px;">
+ <input type="text" id="liveSearch" placeholder="İsim, Yazar, ISBN, Dil, Kategori, Not, Durum Ara..." oninput="render()" style="margin-bottom:10px;" />
+ <select id="sort" onchange="render()" style="margin-bottom:0; font-size:14px; font-weight:600;">
+ <option value="added_desc">En Yeni Eklenen</option>
+ <option value="title_asc">İsim (A-Z)</option>
+ <option value="price_desc">Fiyat (Pahalıdan Ucuza)</option>
+ <option value="year_desc">Yayın Yılı (Yeni-Eski)</option>
+ <option value="page_desc">Sayfa Sayısı (Çok-Az)</option>
+ </select>
+ </div>
+ <div id="shelfTabs" class="shelf-container"></div>
+ <div id="list"></div>
+</div>
+<nav class="nav-bar">
+ <div class="nav-item" onclick="goHome()">🏠<br/>Ana Sayfa</div>
+ <div class="nav-item" onclick="toggleForm()">➕<br/>Ekle</div>
+ <div class="nav-item" onclick="exportData()">📤<br/>Yedek Al</div>
+</nav>
+<div id="lightbox" onclick="this.style.display='none'"><img id="lbImg" alt="Kapak" /></div>
+
+<!-- Barkod Tarama Modal -->
+<div id="scanModal" onclick="closeScanner(event)">
+  <div class="scan-card" onclick="event.stopPropagation()">
+    <div class="scan-header">
+      <div class="scan-title">📷 Barkod Tara (ISBN/EAN‑13 destekli)</div>
+      <button onclick="hideScanner()" style="background:#ef4444;color:#fff;padding:8px 10px;border-radius:10px;">Kapat</button>
+    </div>
+    <div class="scan-controls">
+      <select id="camList"></select>
+      <button onclick="startScan()" style="background:#16a34a;color:#fff;">Başlat</button>
+      <button onclick="stopScan()" style="background:#f59e0b;color:#111827;">Durdur</button>
+      <label style="display:inline-block;">
+        <input type="file" id="barcodeImage" accept="image/*" style="display:none" onchange="scanFromImage(event)">
+        <span style="padding:8px 10px;border-radius:10px;background:#0ea5e9;">📁 Fotoğraftan Tara</span>
+      </label>
+      <button onclick="toggleTorch()" id="torchBtn" style="display:none;">🔦 Işık</button>
+    </div>
+    <div class="scan-video-wrap">
+      <video id="preview" playsinline muted></video>
+      <div class="scan-aim"></div>
+    </div>
+    <div class="scan-footer">
+      <span id="scanInfo">Hazır</span>
+      <span id="scanLast"></span>
+    </div>
+  </div>
+</div>
+
+<script src="assets/idb.js" defer></script>
+<script src="assets/app.js" defer></script>
+<script src="assets/scanner.js" defer></script>
+</body>
+</html>
