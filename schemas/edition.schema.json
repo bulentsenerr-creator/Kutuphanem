@@ -1,0 +1,48 @@
+{
+  "title": "Edition",
+  "type": "object",
+  "required": [
+    "isbn13",
+    "language",
+    "createdAt",
+    "updatedAt"
+  ],
+  "properties": {
+    "isbn13": {
+      "type": "string"
+    },
+    "language": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "categories": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "publisher": {
+      "type": "string"
+    },
+    "editionStatement": {
+      "type": "string"
+    },
+    "publishedDate": {
+      "type": "string"
+    },
+    "pageCount": {
+      "type": "integer"
+    },
+    "format": {
+      "type": "string"
+    },
+    "createdAt": {
+      "type": "string"
+    },
+    "updatedAt": {
+      "type": "string"
+    }
+  }
+}

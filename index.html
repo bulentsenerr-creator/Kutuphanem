@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#0b1220" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" href="assets/icon-192.png" />
+  <title>Kitap Kütüphanem</title>
+  <link rel="stylesheet" href="assets/styles.css" />
+</head>
+<body>
+<header class="topbar">
+  <div class="wrap">
+    <div class="brand">
+      <div class="logo">📚</div>
+      <div>
+        <div class="title">Kitap Kütüphanem</div>
+        <div class="subtitle">PWA • Kamera barkod okuma • Edition + UserCopy</div>
+      </div>
+    </div>
+    <div class="actions">
+      <button id="btnInstall" class="btn primary" hidden>Yükle</button>
+      <button id="btnExport" class="btn ghost">Dışa Aktar</button>
+      <label class="btn ghost file">İçe Aktar<input id="fileImport" type="file" accept="application/json" /></label>
+      <button id="btnClear" class="btn danger">Tümünü Sil</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap grid">
+  <section class="card">
+    <h2>1) ISBN ile Getir</h2>
+    <div class="row">
+      <label>
+        <span>ISBN (10/13) veya EAN-13</span>
+        <input id="isbnInput" placeholder="Örn: 9780553804577" inputmode="numeric" />
+      </label>
+      <button id="btnScan" class="btn">📷 Barkod Oku</button>
+      <button id="btnFetch" class="btn primary">Bilgileri Getir</button>
+    </div>
+
+    <details class="settings">
+      <summary>⚙️ Ayarlar</summary>
+      <div class="row">
+        <label>
+          <span>Google Books API Key (opsiyonel)</span>
+          <input id="googleApiKey" placeholder="API key (istersen)" />
+        </label>
+        <label>
+          <span>Cache Yenile</span>
+          <select id="refreshMode">
+            <option value="auto" selected>Otomatik (cache varsa kullan)</option>
+            <option value="refresh">Yenile (kaynaklardan yeniden çek)</option>
+          </select>
+        </label>
+      </div>
+      <p class="hint">Not: API key'i cihazında saklarız (localStorage).</p>
+    </details>
+
+    <div id="fetchStatus" class="status"></div>
+
+    <div class="two">
+      <div class="coverBox">
+        <img id="coverImg" alt="Kapak" />
+        <div class="small" id="coverInfo"></div>
+      </div>
+      <div>
+        <h3>Edition (Kitap/Baskı Bilgileri)</h3>
+        <div class="form grid2">
+          <label><span>ISBN-13</span><input id="ed_isbn13" readonly /></label>
+          <label><span>ISBN-10</span><input id="ed_isbn10" readonly /></label>
+          <label><span>Dil</span><input id="ed_language" placeholder="tr/en..." /></label>
+          <label><span>Yayıncı</span><input id="ed_publisher" /></label>
+          <label><span>Baskı</span><input id="ed_editionStatement" placeholder="Örn: 2. Baskı" /></label>
+          <label><span>Yayınlanma Tarihi</span><input id="ed_publishedDate" placeholder="YYYY-MM-DD veya YYYY" /></label>
+          <label><span>Sayfa Sayısı</span><input id="ed_pageCount" inputmode="numeric" /></label>
+          <label>
+            <span>Format</span>
+            <select id="ed_format">
+              <option value="">(Seç)</option>
+              <option>Ciltli</option><option>Ciltsiz</option><option>Deri ciltli</option><option>Defter</option>
+              <option>Kutulu set</option><option>Geleneksel olmayan</option><option>CD</option><option>DVD</option>
+              <option>Ekitap</option><option>Diğer</option>
+            </select>
+          </label>
+          <label class="full"><span>Kategoriler</span><input id="ed_categories" placeholder="Virgülle ayır: Fiction, ..." /></label>
+          <label class="full"><span>Açıklama</span><textarea id="ed_description" rows="5"></textarea></label>
+        </div>
+
+        <h3 style="margin-top:14px">UserCopy (Satın Alma / Kullanıcı Bilgileri)</h3>
+        <div class="form grid2">
+          <label><span>Satın Alma Tarihi</span><input id="uc_purchaseDate" type="date" /></label>
+          <label><span>Satın Alınan Yer</span><input id="uc_purchasePlace" placeholder="Örn: D&R, Amazon, ..." /></label>
+          <label class="full"><span>Etiketler</span><input id="uc_tags" placeholder="Virgülle ayır: klasik, iş, ..." /></label>
+          <label class="full"><span>Notlar</span><textarea id="uc_notes" rows="3"></textarea></label>
+        </div>
+
+        <div class="row end">
+          <button id="btnSave" class="btn">Kaydet / Güncelle</button>
+          <button id="btnReset" class="btn ghost">Formu Sıfırla</button>
+        </div>
+
+        <div class="small">Otomatik Eklenme Tarihi: <span id="uc_addedAt">-</span></div>
+        <div class="small">Confidence: <span id="ed_confidence">-</span></div>
+        <div class="small">Kaynaklar: <span id="ed_sources">-</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>2) Kütüphanem</h2>
+    <div id="library" class="library"></div>
+  </section>
+</main>
+
+<!-- Scan Modal -->
+<div id="scanModal" class="modal" hidden>
+  <div class="modalCard" role="dialog" aria-modal="true" aria-label="Barkod tarayıcı">
+    <div class="modalTop">
+      <div>
+        <div class="modalTitle">Barkod Oku</div>
+        <div class="small" id="scanHint">Kamerayı barkoda yaklaştır.</div>
+      </div>
+      <div class="modalBtns">
+        <button id="btnTorch" class="btn ghost" hidden>🔦 Işık</button>
+        <button id="btnCloseScan" class="btn danger">Kapat</button>
+      </div>
+    </div>
+    <video id="scanVideo" playsinline muted></video>
+    <div class="small" id="scanResult"></div>
+  </div>
+</div>
+
+<footer class="footer wrap">
+  <div class="small">Kamera ve PWA için HTTPS/secure origin gerekir.</div>
+</footer>
+
+<script type="module" src="src/app.js"></script>
+</body>
+</html>
